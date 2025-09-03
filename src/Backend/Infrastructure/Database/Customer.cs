@@ -8,7 +8,6 @@ public class Customer
     public string Email { get; set; } = "";
     public string Phone { get; set; } = "";
     public string Iban { get; set; } = "";
-
     public int? CustomerCategoryId { get; set; }
     public CustomerCategory? CustomerCategory { get; set; }
 }
