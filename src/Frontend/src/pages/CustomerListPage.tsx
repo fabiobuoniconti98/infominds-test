@@ -1,16 +1,20 @@
 import {
-    Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Typography,
-    styled,
-    tableCellClasses,
+  Box,
+  Input,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+  styled,
+  tableCellClasses,
 } from "@mui/material";
+import axios from "axios";
 import { useEffect, useState } from "react";
+import { useDebounceValue } from "usehooks-ts";
 
 interface CustomerListQuery {
   id: number;
@@ -18,27 +22,53 @@ interface CustomerListQuery {
   address: string;
   email: string;
   phone: string;
-  iban:string;
+  iban: string;
 }
 
 export default function CustomerListPage() {
   const [list, setList] = useState<CustomerListQuery[]>([]);
+  const [nameFilter, setNameFilter] = useDebounceValue<string>("", 500);
+  const [emailFilter, setEmailFilter] = useDebounceValue<string>("", 500);
 
   useEffect(() => {
-    fetch("/api/customers/list")
-      .then((response) => {
-        return response.json();
-      })
-      .then((data) => {
-        setList(data as CustomerListQuery[]);
-      });
-  }, []);
+    (async () => {
+      const filterParams: { email?: string; name?: string } = {};
+      if (nameFilter.trim()) {
+        filterParams.name = nameFilter;
+      }
+      if (emailFilter.trim()) {
+        filterParams.email = emailFilter;
+      }
+      const { data } = await axios.get<CustomerListQuery[]>(
+        "/api/customers/list",
+        { params: filterParams }
+      );
+      setList(data);
+    })();
+  }, [nameFilter, emailFilter]);
 
   return (
     <>
       <Typography variant="h4" sx={{ textAlign: "center", mt: 4, mb: 4 }}>
         Customers
       </Typography>
+
+      <Box sx={{ display: "flex", gap: 4, marginBottom: 4 }}>
+        <Input
+          placeholder="Name"
+          defaultValue={nameFilter}
+          onChange={(e) => {
+            setNameFilter(e.currentTarget.value);
+          }}
+        />
+        <Input
+          placeholder="Email"
+          defaultValue={emailFilter}
+          onChange={(e) => {
+            setEmailFilter(e.currentTarget.value);
+          }}
+        />
+      </Box>
 
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">

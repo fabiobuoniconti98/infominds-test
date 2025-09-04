@@ -1,4 +1,6 @@
 import {
+  Box,
+  Input,
   Paper,
   Table,
   TableBody,
@@ -10,7 +12,9 @@ import {
   styled,
   tableCellClasses,
 } from "@mui/material";
+import axios from "axios";
 import { useEffect, useState } from "react";
+import { useDebounceValue } from "usehooks-ts";
 
 interface SupplierListQuery {
   id: number;
@@ -23,21 +27,37 @@ interface SupplierListQuery {
 export default function SupplierListPage() {
   const [list, setList] = useState<SupplierListQuery[]>([]);
 
+  const [nameFilter, setNameFilter] = useDebounceValue<string>("", 500);
+
   useEffect(() => {
-    fetch("/api/suppliers/list")
-      .then((response) => {
-        return response.json();
-      })
-      .then((data) => {
-        setList(data as SupplierListQuery[]);
-      });
-  }, []);
+    (async () => {
+      const filterParams: { name?: string } = {};
+      if (nameFilter.trim()) {
+        filterParams.name = nameFilter;
+      }
+      const { data } = await axios.get<SupplierListQuery[]>(
+        "/api/suppliers/list",
+        { params: filterParams }
+      );
+      setList(data);
+    })();
+  }, [nameFilter]);
 
   return (
     <>
       <Typography variant="h4" sx={{ textAlign: "center", mt: 4, mb: 4 }}>
         Suppliers
       </Typography>
+
+      <Box sx={{ display: "flex", gap: 4, marginBottom: 4 }}>
+        <Input
+          placeholder="Name"
+          defaultValue={nameFilter}
+          onChange={(e) => {
+            setNameFilter(e.currentTarget.value);
+          }}
+        />
+      </Box>
 
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">

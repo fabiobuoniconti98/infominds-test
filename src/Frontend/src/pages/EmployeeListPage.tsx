@@ -1,4 +1,6 @@
 import {
+  Box,
+  Input,
   Paper,
   Table,
   TableBody,
@@ -10,7 +12,9 @@ import {
   styled,
   tableCellClasses,
 } from "@mui/material";
+import axios from "axios";
 import { useEffect, useState } from "react";
+import { useDebounceValue } from "usehooks-ts";
 
 interface EmployeeListQuery {
   id: number;
@@ -23,22 +27,51 @@ interface EmployeeListQuery {
 
 export default function EmployeeListPage() {
   const [list, setList] = useState<EmployeeListQuery[]>([]);
+  const [firstNameFilter, setFirstNameFilter] = useDebounceValue<string>(
+    "",
+    500
+  );
+  const [lastNameFilter, setLastNameFilter] = useDebounceValue<string>("", 500);
 
   useEffect(() => {
-    fetch("/api/employees/list")
-      .then((response) => {
-        return response.json();
-      })
-      .then((data) => {
-        setList(data as EmployeeListQuery[]);
-      });
-  }, []);
+    (async () => {
+      const filterParams: { firstName?: string; lastName?: string } = {};
+      if (firstNameFilter.trim()) {
+        filterParams.firstName = firstNameFilter;
+      }
+      if (lastNameFilter.trim()) {
+        filterParams.lastName = lastNameFilter;
+      }
+      const { data } = await axios.get<EmployeeListQuery[]>(
+        "/api/employees/list",
+        { params: filterParams }
+      );
+      setList(data);
+    })();
+  }, [firstNameFilter, lastNameFilter]);
 
   return (
     <>
       <Typography variant="h4" sx={{ textAlign: "center", mt: 4, mb: 4 }}>
         Employees
       </Typography>
+
+      <Box sx={{ display: "flex", gap: 4, marginBottom: 4 }}>
+        <Input
+          placeholder="First Name"
+          defaultValue={firstNameFilter}
+          onChange={(e) => {
+            setFirstNameFilter(e.currentTarget.value);
+          }}
+        />
+        <Input
+          placeholder="Last Name"
+          defaultValue={lastNameFilter}
+          onChange={(e) => {
+            setLastNameFilter(e.currentTarget.value);
+          }}
+        />
+      </Box>
 
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
