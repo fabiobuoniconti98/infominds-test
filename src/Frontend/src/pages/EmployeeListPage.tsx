@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Input,
   Paper,
   Table,
@@ -13,6 +14,7 @@ import {
   tableCellClasses,
 } from "@mui/material";
 import axios from "axios";
+import { jsXml } from "json-xml-parse";
 import { useEffect, useState } from "react";
 import { useDebounceValue } from "usehooks-ts";
 
@@ -56,21 +58,57 @@ export default function EmployeeListPage() {
         Employees
       </Typography>
 
-      <Box sx={{ display: "flex", gap: 4, marginBottom: 4 }}>
-        <Input
-          placeholder="First Name"
-          defaultValue={firstNameFilter}
-          onChange={(e) => {
-            setFirstNameFilter(e.currentTarget.value);
+      <Box
+        sx={{
+          display: "flex",
+          gap: 4,
+          marginBottom: 4,
+          justifyContent: "space-between",
+        }}
+      >
+        <Box sx={{ display: "flex", gap: 4 }}>
+          <Input
+            placeholder="First Name"
+            defaultValue={firstNameFilter}
+            onChange={(e) => {
+              setFirstNameFilter(e.currentTarget.value);
+            }}
+          />
+          <Input
+            placeholder="Last Name"
+            defaultValue={lastNameFilter}
+            onChange={(e) => {
+              setLastNameFilter(e.currentTarget.value);
+            }}
+          />
+        </Box>
+        <Button
+          type="button"
+          disabled={list.length === 0}
+          onClick={() => {
+            const xml = jsXml.toXmlString(list);
+            const blob = new Blob([xml], { type: "text/plain" });
+            // Create blob link to download
+            const url = window.URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", `employees.xml`);
+
+            // Append to html link element page
+            document.body.appendChild(link);
+
+            // Start download
+            link.click();
+
+            // Clean up and remove the link
+            if (link.parentNode) {
+              link.parentNode.removeChild(link);
+            }
           }}
-        />
-        <Input
-          placeholder="Last Name"
-          defaultValue={lastNameFilter}
-          onChange={(e) => {
-            setLastNameFilter(e.currentTarget.value);
-          }}
-        />
+        >
+          Download XML
+        </Button>
       </Box>
 
       <TableContainer component={Paper}>

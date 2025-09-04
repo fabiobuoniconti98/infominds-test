@@ -14,9 +14,9 @@ import {
   tableCellClasses,
 } from "@mui/material";
 import axios from "axios";
+import { jsXml } from "json-xml-parse";
 import { useEffect, useState } from "react";
 import { useDebounceValue } from "usehooks-ts";
-import parser from "json-xml-parse";
 
 interface CustomerListQuery {
   id: number;
@@ -81,8 +81,9 @@ export default function CustomerListPage() {
         </Box>
         <Button
           type="button"
+          disabled={list.length === 0}
           onClick={() => {
-            const xml = parser.jsXml.toXmlString(list);
+            const xml = jsXml.toXmlString(list);
             const blob = new Blob([xml], { type: "text/plain" });
             // Create blob link to download
             const url = window.URL.createObjectURL(blob);

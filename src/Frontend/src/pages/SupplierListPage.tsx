@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Input,
   Paper,
   Table,
@@ -13,6 +14,7 @@ import {
   tableCellClasses,
 } from "@mui/material";
 import axios from "axios";
+import { jsXml } from "json-xml-parse";
 import { useEffect, useState } from "react";
 import { useDebounceValue } from "usehooks-ts";
 
@@ -49,7 +51,14 @@ export default function SupplierListPage() {
         Suppliers
       </Typography>
 
-      <Box sx={{ display: "flex", gap: 4, marginBottom: 4 }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 4,
+          marginBottom: 4,
+          justifyContent: "space-between",
+        }}
+      >
         <Input
           placeholder="Name"
           defaultValue={nameFilter}
@@ -57,6 +66,33 @@ export default function SupplierListPage() {
             setNameFilter(e.currentTarget.value);
           }}
         />
+        <Button
+          type="button"
+          disabled={list.length === 0}
+          onClick={() => {
+            const xml = jsXml.toXmlString(list);
+            const blob = new Blob([xml], { type: "text/plain" });
+            // Create blob link to download
+            const url = window.URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", `suppliers.xml`);
+
+            // Append to html link element page
+            document.body.appendChild(link);
+
+            // Start download
+            link.click();
+
+            // Clean up and remove the link
+            if (link.parentNode) {
+              link.parentNode.removeChild(link);
+            }
+          }}
+        >
+          Download XML
+        </Button>
       </Box>
 
       <TableContainer component={Paper}>
