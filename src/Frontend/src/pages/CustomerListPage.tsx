@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Input,
   Paper,
   Table,
@@ -15,6 +16,7 @@ import {
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useDebounceValue } from "usehooks-ts";
+import parser from "json-xml-parse";
 
 interface CustomerListQuery {
   id: number;
@@ -53,21 +55,56 @@ export default function CustomerListPage() {
         Customers
       </Typography>
 
-      <Box sx={{ display: "flex", gap: 4, marginBottom: 4 }}>
-        <Input
-          placeholder="Name"
-          defaultValue={nameFilter}
-          onChange={(e) => {
-            setNameFilter(e.currentTarget.value);
+      <Box
+        sx={{
+          display: "flex",
+          gap: 4,
+          marginBottom: 4,
+          justifyContent: "space-between",
+        }}
+      >
+        <Box sx={{ display: "flex", gap: 4 }}>
+          <Input
+            placeholder="Name"
+            defaultValue={nameFilter}
+            onChange={(e) => {
+              setNameFilter(e.currentTarget.value);
+            }}
+          />
+          <Input
+            placeholder="Email"
+            defaultValue={emailFilter}
+            onChange={(e) => {
+              setEmailFilter(e.currentTarget.value);
+            }}
+          />
+        </Box>
+        <Button
+          type="button"
+          onClick={() => {
+            const xml = parser.jsXml.toXmlString(list);
+            const blob = new Blob([xml], { type: "text/plain" });
+            // Create blob link to download
+            const url = window.URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", `customers.xml`);
+
+            // Append to html link element page
+            document.body.appendChild(link);
+
+            // Start download
+            link.click();
+
+            // Clean up and remove the link
+            if (link.parentNode) {
+              link.parentNode.removeChild(link);
+            }
           }}
-        />
-        <Input
-          placeholder="Email"
-          defaultValue={emailFilter}
-          onChange={(e) => {
-            setEmailFilter(e.currentTarget.value);
-          }}
-        />
+        >
+          Download XML
+        </Button>
       </Box>
 
       <TableContainer component={Paper}>
